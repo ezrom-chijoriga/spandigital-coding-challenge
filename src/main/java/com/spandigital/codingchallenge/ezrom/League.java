@@ -1,7 +1,6 @@
 package com.spandigital.codingchallenge.ezrom;
 
 import com.spandigital.codingchallenge.ezrom.exception.InvalidMatchResultException;
-import com.spandigital.codingchallenge.ezrom.exception.InvalidTeamMatchResultException;
 import com.spandigital.codingchallenge.ezrom.exception.InvalidTeamScoreException;
 import com.spandigital.codingchallenge.ezrom.model.Match;
 import com.spandigital.codingchallenge.ezrom.model.MatchOutcome;
@@ -12,13 +11,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class League {
-
-    private static League leagueInstance = null;
 
     public static Map<String, TeamStats> teamStatsList = new HashMap<>();
 
@@ -26,22 +22,13 @@ public class League {
     private static final int LOSING_POINTS = 0;
     private static final int DRAW_POINTS = 1;
 
-    private League() {
-    }
-
-    public static League getLeagueInstance() {
-        if (leagueInstance == null)
-            leagueInstance = new League();
-        return leagueInstance;
-    }
-
     public static void updateTeamStats(Match match) {
         MatchOutcome matchOutcome = calculateMatchOutcome(match.getTeamOneScore(), match.getTeamTwoScore());
 
         TeamStats teamOneStats = teamStatsList.get(match.getTeamOneName());
         TeamStats teamTwoStats = teamStatsList.get(match.getTeamTwoName());
         switch (matchOutcome) {
-            case WIN:
+            case WIN -> {
                 if (teamOneStats != null) {
                     teamOneStats.setPoints(teamOneStats.getPoints() + WINNING_POINTS);
                     teamStatsList.replace(match.getTeamOneName(), teamOneStats);
@@ -51,8 +38,8 @@ public class League {
                 if (teamTwoStats == null) {
                     teamStatsList.put(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), LOSING_POINTS));
                 }
-                break;
-            case DRAW:
+            }
+            case DRAW -> {
                 if (teamOneStats != null) {
                     teamOneStats.setPoints(teamOneStats.getPoints() + DRAW_POINTS);
                     teamStatsList.replace(match.getTeamOneName(), teamOneStats);
@@ -65,8 +52,8 @@ public class League {
                 } else {
                     teamStatsList.put(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), DRAW_POINTS));
                 }
-                break;
-            case LOSS:
+            }
+            case LOSS -> {
                 if (teamOneStats == null) {
                     teamStatsList.put(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), LOSING_POINTS));
                 }
@@ -76,11 +63,11 @@ public class League {
                 } else {
                     teamStatsList.put(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), WINNING_POINTS));
                 }
-                break;
+            }
         }
     }
 
-    public static Match getMatch(String matchResult) throws InvalidMatchResultException, InvalidTeamMatchResultException, InvalidTeamScoreException {
+    public static Match getMatch(String matchResult) throws InvalidMatchResultException, InvalidTeamScoreException {
         String[] match = matchResult.replaceAll("\\s+", " ").trim().split(", ");
         if (match.length != 2) {
             throw new InvalidMatchResultException("Invalid match result entered");
@@ -91,18 +78,9 @@ public class League {
 
         int lastIndexOf = teamOneStr.lastIndexOf(" ");
         String[] teamOneMatchResult = {teamOneStr.substring(0, lastIndexOf), teamOneStr.substring(lastIndexOf + 1)};
-        if (teamOneMatchResult.length != 2) {
-            throw new InvalidTeamMatchResultException("Invalid team match result entered");
-        }
 
         lastIndexOf = teamTwoStr.lastIndexOf(" ");
         String[] teamTwoMatchResult = {teamTwoStr.substring(0, lastIndexOf), teamTwoStr.substring(lastIndexOf + 1)};
-        if (teamTwoMatchResult.length != 2) {
-            throw new InvalidTeamMatchResultException("Invalid team match result entered");
-        }
-
-        String teamOneName = teamOneMatchResult[0];
-        String teamTwoName = teamTwoMatchResult[0];
 
         int teamOneScore;
         int teamTwoScore;
@@ -112,7 +90,7 @@ public class League {
         } catch (NumberFormatException e) {
             throw new InvalidTeamScoreException("Invalid team score entered");
         }
-        return new Match(teamOneName, teamOneScore, teamTwoName, teamTwoScore);
+        return new Match(teamOneMatchResult[0], teamOneScore, teamTwoMatchResult[0], teamTwoScore);
     }
 
     public static void rankTeams(Map<String, TeamStats> teamStatsList) {
@@ -132,7 +110,7 @@ public class League {
         }
     }
 
-    public static void main(String[] args) throws IOException, InvalidTeamMatchResultException, InvalidTeamScoreException, InvalidMatchResultException {
+    public static void main(String[] args) throws IOException, InvalidTeamScoreException, InvalidMatchResultException {
         System.out.println("---------------------------------------------------------------------------");
         System.out.println("Welcome to SPAN digital");
         System.out.println("This is a simple application that calculates the ranking table for a league");
