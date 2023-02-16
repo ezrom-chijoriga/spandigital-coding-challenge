@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class LeagueTest {
 
@@ -51,5 +52,51 @@ class LeagueTest {
 
         //Then:
         assertEquals(MatchOutcome.DRAW, matchOutcome);
+    }
+
+    @Test
+    @DisplayName("Test a valid match is returned")
+    void getMatch_Success() throws InvalidTeamScoreException, InvalidMatchResultException {
+        //Given:
+        String teamOneName = "Tarantulas";
+        int teamOneScore = 1;
+
+        String teamTwoName = "FC Awesome";
+        int teamTwoScore = 0;
+
+        String matchResult = "Tarantulas 1, FC Awesome 0";
+
+        //When:
+        Match match = League.getMatch(matchResult);
+
+        //Then:
+        assertEquals(teamOneName, match.getTeamOneName());
+        assertEquals(teamOneScore, match.getTeamOneScore());
+        assertEquals(teamTwoName, match.getTeamTwoName());
+        assertEquals(teamTwoScore, match.getTeamTwoScore());
+    }
+
+    @Test
+    @DisplayName("Test that we are throwing InvalidMatchResultException when two team haven't been entered")
+    void getMatch_InvalidMatchResultException() {
+        //Given:
+        String matchResult = "Tarantulas 1";
+
+        //When:
+
+        //Then:
+        assertThrows(InvalidMatchResultException.class, () -> League.getMatch(matchResult));
+    }
+
+    @Test
+    @DisplayName("Test that we are throwing InvalidTeamScoreException when a team with no score  has been entered")
+    void getMatch_InvalidTeamScoreException() {
+        //Given:
+        String matchResult = "Tarantulas 1, FC Awesome";
+
+        //When:
+
+        //Then:
+        assertThrows(InvalidTeamScoreException.class, () -> League.getMatch(matchResult));
     }
 }
