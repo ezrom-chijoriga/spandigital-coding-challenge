@@ -8,6 +8,9 @@ import com.spandigital.codingchallenge.ezrom.model.TeamStats;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -155,5 +158,30 @@ class LeagueTest {
         TeamStats teamTwoStats = League.teamStatsList.get(teamTwoName);
         assertEquals(teamTwoName, teamTwoStats.getTeamName());
         assertEquals(teamTwoInitialPoints + LOSING_POINTS, teamTwoStats.getPoints());
+    }
+
+    @Test
+    @DisplayName("Test that teams are ranked in order of highest points and alphabetically for equal points teams")
+    void rankTeams() {
+        //Given:
+        TeamStats firstTeam = new TeamStats("Tarantulas", 6);
+        TeamStats lastTeam = new TeamStats("Grouches", 0);
+        Map<String, TeamStats> teamStatsList = Map.of(
+                "Tarantulas", new TeamStats("Tarantulas", 6),
+                "FC Awesome", new TeamStats("FC Awesome", 1),
+                "Lions", new TeamStats("Lions", 5),
+                "Grouches", new TeamStats("Grouches", 0),
+                "Snakes", new TeamStats("Snakes", 1));
+
+
+        //When:
+        List<TeamStats> teamsStats = League.rankTeams(teamStatsList);
+
+        //Then:
+        assertEquals(teamStatsList.size(), teamsStats.size());
+        assertEquals(firstTeam.getTeamName(), teamsStats.get(0).getTeamName());
+        assertEquals(firstTeam.getPoints(), teamsStats.get(0).getPoints());
+        assertEquals(lastTeam.getTeamName(), teamsStats.get(teamsStats.size() - 1).getTeamName());
+        assertEquals(lastTeam.getPoints(), teamsStats.get(teamsStats.size() - 1).getPoints());
     }
 }
