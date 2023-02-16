@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -92,12 +93,11 @@ public class League {
         return new Match(teamOneMatchResult[0], teamOneScore, teamTwoMatchResult[0], teamTwoScore);
     }
 
-    public static void rankTeams(Map<String, TeamStats> teamStatsList) {
+    public static List<TeamStats> rankTeams(Map<String, TeamStats> teamStatsList) {
         Comparator<TeamStats> compareByTeamName = Comparator.comparing(TeamStats::getTeamName);
         Comparator<TeamStats> compareByTeamPoints = Comparator.comparing(TeamStats::getPoints).reversed();
         Comparator<TeamStats> compareByTeamNameAndPoints = compareByTeamPoints.thenComparing(compareByTeamName);
-        teamStatsList.entrySet().stream().sorted(Map.Entry.comparingByValue(compareByTeamNameAndPoints)).collect(Collectors.toList())
-                .forEach(stringTeamStatsEntry -> System.out.println(stringTeamStatsEntry.getValue()));
+        return teamStatsList.values().stream().sorted(compareByTeamNameAndPoints).collect(Collectors.toList());
     }
 
     public static MatchOutcome getMatchOutcome(int teamOneScore, int teamTwoScore) {
@@ -138,7 +138,12 @@ public class League {
             }
             input = bufferedReader.readLine();
         }
-        rankTeams(teamStatsList);
+
+        int count = 1;
+        for (TeamStats teamStats : rankTeams(teamStatsList)) {
+            System.out.println(count + ". " + teamStats);
+            count++;
+        }
         bufferedReader.close();
     }
 }
