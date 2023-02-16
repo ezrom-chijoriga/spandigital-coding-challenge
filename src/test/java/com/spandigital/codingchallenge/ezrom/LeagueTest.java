@@ -4,6 +4,7 @@ import com.spandigital.codingchallenge.ezrom.exception.InvalidMatchResultExcepti
 import com.spandigital.codingchallenge.ezrom.exception.InvalidTeamScoreException;
 import com.spandigital.codingchallenge.ezrom.model.Match;
 import com.spandigital.codingchallenge.ezrom.model.MatchOutcome;
+import com.spandigital.codingchallenge.ezrom.model.TeamStats;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,6 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class LeagueTest {
+    private static final int WINNING_POINTS = 3;
+    private static final int LOSING_POINTS = 0;
 
     @Test
     @DisplayName("Test a win match outcome")
@@ -98,5 +101,59 @@ class LeagueTest {
 
         //Then:
         assertThrows(InvalidTeamScoreException.class, () -> League.getMatch(matchResult));
+    }
+
+    @Test
+    @DisplayName("Test that team stats gets update for a respective match when there is no initial points")
+    void updateTeamStats_WithoutInitialPoints() {
+        //Given:
+        String teamOneName = "Tarantulas";
+        int teamOneScore = 1;
+
+        String teamTwoName = "FC Awesome";
+        int teamTwoScore = 0;
+        Match match = new Match(teamOneName, teamOneScore, teamTwoName, teamTwoScore);
+
+        //When:
+        League.updateTeamStats(match);
+
+        //Then:
+        TeamStats teamOneStats = League.teamStatsList.get(teamOneName);
+        assertEquals(teamOneName, teamOneStats.getTeamName());
+        assertEquals(WINNING_POINTS, teamOneStats.getPoints());
+
+        TeamStats teamTwoStats = League.teamStatsList.get(teamTwoName);
+        assertEquals(teamTwoName, teamTwoStats.getTeamName());
+        assertEquals(LOSING_POINTS, teamTwoStats.getPoints());
+    }
+
+    @Test
+    @DisplayName("Test that team stats gets update for a respective match when there is initial points")
+    void updateTeamStats_WithInitialPoints() {
+        //Given:
+        String teamOneName = "Tarantulas";
+        int teamOneScore = 1;
+        int teamOneInitialPoints = 3;
+
+        String teamTwoName = "FC Awesome";
+        int teamTwoScore = 0;
+        int teamTwoInitialPoints = 1;
+
+        Match match = new Match(teamOneName, teamOneScore, teamTwoName, teamTwoScore);
+
+        League.teamStatsList.put(teamOneName, new TeamStats(teamOneName, teamOneInitialPoints));
+        League.teamStatsList.put(teamTwoName, new TeamStats(teamTwoName, teamTwoInitialPoints));
+
+        //When:
+        League.updateTeamStats(match);
+
+        //Then:
+        TeamStats teamOneStats = League.teamStatsList.get(teamOneName);
+        assertEquals(teamOneName, teamOneStats.getTeamName());
+        assertEquals(teamOneInitialPoints + WINNING_POINTS, teamOneStats.getPoints());
+
+        TeamStats teamTwoStats = League.teamStatsList.get(teamTwoName);
+        assertEquals(teamTwoName, teamTwoStats.getTeamName());
+        assertEquals(teamTwoInitialPoints + LOSING_POINTS, teamTwoStats.getPoints());
     }
 }
