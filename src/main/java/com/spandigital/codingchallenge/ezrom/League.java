@@ -23,6 +23,11 @@ public class League {
     private static final int LOSING_POINTS = 0;
     private static final int DRAW_POINTS = 1;
 
+    /**
+     * Updates team statistics i.e points for every team that participated in a match
+     *
+     * @param match details of the match
+     */
     public static void updateTeamStats(Match match) {
         MatchOutcome matchOutcome = getMatchOutcome(match.getTeamOneScore(), match.getTeamTwoScore());
 
@@ -68,6 +73,11 @@ public class League {
         }
     }
 
+    /**
+     * Gets the match object from a string value
+     *
+     * @param matchResult result of the match in string format
+     */
     public static Match getMatch(String matchResult) throws InvalidMatchResultException, InvalidTeamScoreException {
         String[] match = matchResult.replaceAll("\\s+", " ").trim().split(", ");
         if (match.length != 2) {
@@ -93,6 +103,13 @@ public class League {
         return new Match(teamOneMatchResult[0], teamOneScore, teamTwoMatchResult[0], teamTwoScore);
     }
 
+    /**
+     * Ranks the team based on points and name
+     * 1st - by points
+     * 2nd - by name alphabetically when two or more teams have the same rank
+     *
+     * @param teamStatsList a hashmap of team statistics
+     */
     public static List<TeamStats> rankTeams(Map<String, TeamStats> teamStatsList) {
         Comparator<TeamStats> compareByTeamName = Comparator.comparing(TeamStats::getTeamName);
         Comparator<TeamStats> compareByTeamPoints = Comparator.comparing(TeamStats::getPoints).reversed();
@@ -100,6 +117,12 @@ public class League {
         return teamStatsList.values().stream().sorted(compareByTeamNameAndPoints).collect(Collectors.toList());
     }
 
+    /**
+     * Gets match outcome based on the teams score
+     *
+     * @param teamOneScore score of one team
+     * @param teamTwoScore score of the other team
+     */
     public static MatchOutcome getMatchOutcome(int teamOneScore, int teamTwoScore) {
         if (teamOneScore == teamTwoScore) {
             return MatchOutcome.DRAW;
@@ -118,7 +141,7 @@ public class League {
         System.out.println("\n");
         System.out.println("Please enter on a separate line match results in the format of: \"team1 score, team2 score\"");
         System.out.println("Example:");
-        System.out.println("\t\tTarantulas 1, FC Awesome 0");
+        System.out.println("\tTarantulas 1, FC Awesome 0");
         System.out.println("Type 'exit' to calculate the ranking table for the matches entered");
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
