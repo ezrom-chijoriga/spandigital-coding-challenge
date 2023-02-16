@@ -16,14 +16,14 @@ import java.util.stream.Collectors;
 
 public class League {
 
-    public static Map<String, TeamStats> teamStatsList = new HashMap<>();
+    public static final Map<String, TeamStats> teamStatsList = new HashMap<>();
 
     private static final int WINNING_POINTS = 3;
     private static final int LOSING_POINTS = 0;
     private static final int DRAW_POINTS = 1;
 
     public static void updateTeamStats(Match match) {
-        MatchOutcome matchOutcome = calculateMatchOutcome(match.getTeamOneScore(), match.getTeamTwoScore());
+        MatchOutcome matchOutcome = getMatchOutcome(match.getTeamOneScore(), match.getTeamTwoScore());
 
         TeamStats teamOneStats = teamStatsList.get(match.getTeamOneName());
         TeamStats teamTwoStats = teamStatsList.get(match.getTeamTwoName());
@@ -74,11 +74,10 @@ public class League {
         }
 
         String teamOneStr = match[0];
-        String teamTwoStr = match[1];
-
         int lastIndexOf = teamOneStr.lastIndexOf(" ");
         String[] teamOneMatchResult = {teamOneStr.substring(0, lastIndexOf), teamOneStr.substring(lastIndexOf + 1)};
 
+        String teamTwoStr = match[1];
         lastIndexOf = teamTwoStr.lastIndexOf(" ");
         String[] teamTwoMatchResult = {teamTwoStr.substring(0, lastIndexOf), teamTwoStr.substring(lastIndexOf + 1)};
 
@@ -100,7 +99,7 @@ public class League {
         teamStatsList.entrySet().stream().sorted(Map.Entry.comparingByValue(compareByTeamNameAndPoints)).collect(Collectors.toList()).forEach(System.out::println);
     }
 
-    public static MatchOutcome calculateMatchOutcome(int teamOneScore, int teamTwoScore) {
+    public static MatchOutcome getMatchOutcome(int teamOneScore, int teamTwoScore) {
         if (teamOneScore == teamTwoScore) {
             return MatchOutcome.DRAW;
         } else if (teamOneScore > teamTwoScore) {
@@ -110,7 +109,7 @@ public class League {
         }
     }
 
-    public static void main(String[] args) throws IOException, InvalidTeamScoreException, InvalidMatchResultException {
+    public static void main(String[] args) throws IOException {
         System.out.println("---------------------------------------------------------------------------");
         System.out.println("Welcome to SPAN digital");
         System.out.println("This is a simple application that calculates the ranking table for a league");
@@ -124,8 +123,18 @@ public class League {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         String input = bufferedReader.readLine();
         while (!input.equalsIgnoreCase("exit")) {
-            Match match = getMatch(input);
-            updateTeamStats(match);
+            Match match = null;
+            try {
+                match = getMatch(input);
+            } catch (InvalidMatchResultException e) {
+                System.out.println("Error: Please enter two teams");
+            } catch (InvalidTeamScoreException e) {
+                System.out.println("Error: Please enter a team with their respective score");
+            }
+
+            if (match != null) {
+                updateTeamStats(match);
+            }
             input = bufferedReader.readLine();
         }
         rankTeams(teamStatsList);
