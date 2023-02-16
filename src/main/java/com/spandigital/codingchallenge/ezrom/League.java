@@ -96,7 +96,8 @@ public class League {
         Comparator<TeamStats> compareByTeamName = Comparator.comparing(TeamStats::getTeamName);
         Comparator<TeamStats> compareByTeamPoints = Comparator.comparing(TeamStats::getPoints).reversed();
         Comparator<TeamStats> compareByTeamNameAndPoints = compareByTeamPoints.thenComparing(compareByTeamName);
-        teamStatsList.entrySet().stream().sorted(Map.Entry.comparingByValue(compareByTeamNameAndPoints)).collect(Collectors.toList()).forEach(System.out::println);
+        teamStatsList.entrySet().stream().sorted(Map.Entry.comparingByValue(compareByTeamNameAndPoints)).collect(Collectors.toList())
+                .forEach(stringTeamStatsEntry -> System.out.println(stringTeamStatsEntry.getValue()));
     }
 
     public static MatchOutcome getMatchOutcome(int teamOneScore, int teamTwoScore) {

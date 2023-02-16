@@ -8,9 +8,18 @@
     <artifactId>league</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <dependencies>
+        <!-- Unit test -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit-jupiter-api.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <properties>
+        <junit-jupiter-api.version>5.8.2</junit-jupiter-api.version>
+
         <maven.compiler.source>15</maven.compiler.source>
         <maven.compiler.target>15</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
