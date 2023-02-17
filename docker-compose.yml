@@ -1,0 +1,8 @@
+services:
+  league-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - file_name= sample-data.txt
+    container_name: league-app
