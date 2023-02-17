@@ -21,8 +21,7 @@ public class Application {
         System.out.println("---------------------------------------------------------------------------");
         System.out.println("\n");
 
-        SystemDB systemDB = SystemDB.getDbInstance();
-        League league = new League(new TeamStatsRepositoryImpl(systemDB));
+        League league = new League(new TeamStatsRepositoryImpl(SystemDB.getDbInstance()));
         List<String> matchResults = FileUtil.readFile(args[0]);
 
         System.out.println("Sample inputs:");
@@ -42,10 +41,10 @@ public class Application {
             }
         });
 
-        System.out.printf("\n");
+        System.out.println("\n");
         System.out.println("Expected output:");
         int count = 1;
-        for (TeamStats teamStats : league.rankTeams(systemDB.teamStatsList)) {
+        for (TeamStats teamStats : league.rankTeams(SystemDB.teamStatsList)) {
             System.out.println(count + ". " + teamStats);
             count++;
         }
