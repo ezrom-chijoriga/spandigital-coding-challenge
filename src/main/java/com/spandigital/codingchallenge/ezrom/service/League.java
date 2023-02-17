@@ -1,14 +1,19 @@
-package com.spandigital.codingchallenge.ezrom;
+package com.spandigital.codingchallenge.ezrom.service;
 
 import com.spandigital.codingchallenge.ezrom.exception.InvalidMatchResultException;
 import com.spandigital.codingchallenge.ezrom.exception.InvalidTeamScoreException;
+import com.spandigital.codingchallenge.ezrom.infrastructure.repository.TeamStatsRepository;
 import com.spandigital.codingchallenge.ezrom.model.Match;
 import com.spandigital.codingchallenge.ezrom.model.MatchOutcome;
 import com.spandigital.codingchallenge.ezrom.model.TeamStats;
+import com.spandigital.codingchallenge.ezrom.util.FileUtil;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -17,57 +22,61 @@ import java.util.stream.Collectors;
 
 public class League {
 
-    public static final Map<String, TeamStats> teamStatsList = new HashMap<>();
-
     private static final int WINNING_POINTS = 3;
     private static final int LOSING_POINTS = 0;
     private static final int DRAW_POINTS = 1;
+
+    private TeamStatsRepository teamStatsRepository;
+
+    public League(TeamStatsRepository teamStatsRepository) {
+        this.teamStatsRepository = teamStatsRepository;
+    }
 
     /**
      * Updates team statistics i.e points for every team that participated in a match
      *
      * @param match details of the match
      */
-    public static void updateTeamStats(Match match) {
+    public void updateTeamStats(Match match) {
         MatchOutcome matchOutcome = getMatchOutcome(match.getTeamOneScore(), match.getTeamTwoScore());
 
-        TeamStats teamOneStats = teamStatsList.get(match.getTeamOneName());
-        TeamStats teamTwoStats = teamStatsList.get(match.getTeamTwoName());
+        TeamStats teamOneStats = teamStatsRepository.findTeamStats(match.getTeamOneName());
+        TeamStats teamTwoStats = teamStatsRepository.findTeamStats(match.getTeamTwoName());
         switch (matchOutcome) {
             case WIN -> {
                 if (teamOneStats != null) {
                     teamOneStats.setPoints(teamOneStats.getPoints() + WINNING_POINTS);
-                    teamStatsList.replace(match.getTeamOneName(), teamOneStats);
+                    teamStatsRepository.updateTeamStats(match.getTeamOneName(), teamOneStats);
                 } else {
-                    teamStatsList.put(match.getTeamOneName(), new TeamStats(match.getTeamOneName(), WINNING_POINTS));
+                    teamStatsRepository.insertTeamStats(match.getTeamOneName(), new TeamStats(match.getTeamOneName(), WINNING_POINTS));
                 }
                 if (teamTwoStats == null) {
-                    teamStatsList.put(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), LOSING_POINTS));
+                    teamStatsRepository.insertTeamStats(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), LOSING_POINTS));
                 }
             }
             case DRAW -> {
                 if (teamOneStats != null) {
                     teamOneStats.setPoints(teamOneStats.getPoints() + DRAW_POINTS);
-                    teamStatsList.replace(match.getTeamOneName(), teamOneStats);
+                    teamStatsRepository.updateTeamStats(match.getTeamOneName(), teamOneStats);
                 } else {
-                    teamStatsList.put(match.getTeamOneName(), new TeamStats(match.getTeamOneName(), DRAW_POINTS));
+                    teamStatsRepository.insertTeamStats(match.getTeamOneName(), new TeamStats(match.getTeamOneName(), DRAW_POINTS));
                 }
                 if (teamTwoStats != null) {
                     teamTwoStats.setPoints(teamTwoStats.getPoints() + DRAW_POINTS);
-                    teamStatsList.replace(match.getTeamTwoName(), teamTwoStats);
+                    teamStatsRepository.updateTeamStats(match.getTeamTwoName(), teamTwoStats);
                 } else {
-                    teamStatsList.put(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), DRAW_POINTS));
+                    teamStatsRepository.insertTeamStats(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), DRAW_POINTS));
                 }
             }
             case LOSS -> {
                 if (teamOneStats == null) {
-                    teamStatsList.put(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), LOSING_POINTS));
+                    teamStatsRepository.insertTeamStats(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), LOSING_POINTS));
                 }
                 if (teamTwoStats != null) {
                     teamTwoStats.setPoints(teamTwoStats.getPoints() + WINNING_POINTS);
-                    teamStatsList.replace(match.getTeamTwoName(), teamTwoStats);
+                    teamStatsRepository.updateTeamStats(match.getTeamTwoName(), teamTwoStats);
                 } else {
-                    teamStatsList.put(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), WINNING_POINTS));
+                    teamStatsRepository.insertTeamStats(match.getTeamTwoName(), new TeamStats(match.getTeamTwoName(), WINNING_POINTS));
                 }
             }
         }
@@ -78,7 +87,7 @@ public class League {
      *
      * @param matchResult result of the match in string format
      */
-    public static Match getMatch(String matchResult) throws InvalidMatchResultException, InvalidTeamScoreException {
+    public Match getMatch(String matchResult) throws InvalidMatchResultException, InvalidTeamScoreException {
         String[] match = matchResult.replaceAll("\\s+", " ").trim().split(", ");
         if (match.length != 2) {
             throw new InvalidMatchResultException("Invalid match result entered");
@@ -110,7 +119,7 @@ public class League {
      *
      * @param teamStatsList a hashmap of team statistics
      */
-    public static List<TeamStats> rankTeams(Map<String, TeamStats> teamStatsList) {
+    public List<TeamStats> rankTeams(Map<String, TeamStats> teamStatsList) {
         Comparator<TeamStats> compareByTeamName = Comparator.comparing(TeamStats::getTeamName);
         Comparator<TeamStats> compareByTeamPoints = Comparator.comparing(TeamStats::getPoints).reversed();
         Comparator<TeamStats> compareByTeamNameAndPoints = compareByTeamPoints.thenComparing(compareByTeamName);
@@ -123,7 +132,7 @@ public class League {
      * @param teamOneScore score of one team
      * @param teamTwoScore score of the other team
      */
-    public static MatchOutcome getMatchOutcome(int teamOneScore, int teamTwoScore) {
+    public MatchOutcome getMatchOutcome(int teamOneScore, int teamTwoScore) {
         if (teamOneScore == teamTwoScore) {
             return MatchOutcome.DRAW;
         } else if (teamOneScore > teamTwoScore) {
@@ -131,42 +140,5 @@ public class League {
         } else {
             return MatchOutcome.LOSS;
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        System.out.println("---------------------------------------------------------------------------");
-        System.out.println("Welcome to SPAN digital");
-        System.out.println("This is a simple application that calculates the ranking table for a league");
-        System.out.println("---------------------------------------------------------------------------");
-        System.out.println("\n");
-        System.out.println("Please enter on a separate line match results in the format of: \"team1 score, team2 score\"");
-        System.out.println("Example:");
-        System.out.println("\tTarantulas 1, FC Awesome 0");
-        System.out.println("Type 'exit' to calculate the ranking table for the matches entered");
-
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        String input = bufferedReader.readLine();
-        while (!input.equalsIgnoreCase("exit")) {
-            Match match = null;
-            try {
-                match = getMatch(input);
-            } catch (InvalidMatchResultException e) {
-                System.out.println("Error: Please enter two teams");
-            } catch (InvalidTeamScoreException e) {
-                System.out.println("Error: Please enter a team with their respective score");
-            }
-
-            if (match != null) {
-                updateTeamStats(match);
-            }
-            input = bufferedReader.readLine();
-        }
-
-        int count = 1;
-        for (TeamStats teamStats : rankTeams(teamStatsList)) {
-            System.out.println(count + ". " + teamStats);
-            count++;
-        }
-        bufferedReader.close();
     }
 }
