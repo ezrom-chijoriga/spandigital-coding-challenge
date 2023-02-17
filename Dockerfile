@@ -9,6 +9,7 @@ RUN mvn package
 FROM openjdk:15-jdk
 WORKDIR /app
 COPY --from=build /app/target/*.jar /opt/app.jar
+COPY ./sample-data.txt ./
 COPY ./entrypoint.sh /opt/entrypoint.sh
 
 ENTRYPOINT ["/opt/entrypoint.sh"]
